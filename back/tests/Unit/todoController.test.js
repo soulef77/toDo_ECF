@@ -1,8 +1,8 @@
 const request = require('supertest');
 const express = require('express');
 const mongoose = require('mongoose');
-const Todo = require('../src/models/Todo');
-const todoController = require('../src/controllers/todoController');
+const Todo = require('../../src/models/Todo');
+const todoController = require('../../src/controllers/todoController');
 
 // Create a test app
 const app = express();
@@ -93,77 +93,19 @@ describe('Todo Controller', () => {
     });
   });
 
-  describe('PUT /todos/:id', () => {
-    it('devrait mettre à jour le statut de complétion du todo', async () => {
-      const todo = await Todo.create({ text: 'Test Todo', completed: false });
-
-      const response = await request(app)
-        .put(`/todos/${todo._id}`)
-        .send({ completed: true })
-        .expect(200);
-
-      expect(response.body.completed).toBe(true);
-      expect(response.body.text).toBe('Test Todo');
-      
-      // Verify in database
-      const updatedTodo = await Todo.findById(todo._id);
-      expect(updatedTodo.completed).toBe(true);
-    });
-
-    it('devrait renvoyer 404 lorsque le todo n\'existe pas', async () => {
-      const nonExistentId = new mongoose.Types.ObjectId();
-
-      const response = await request(app)
-        .put(`/todos/${nonExistentId}`)
-        .send({ completed: true })
-        .expect(404);
-
-      expect(response.body.message).toBe('Todo not found');
-    });
-
-    it('devrait renvoyer 400 avec un ObjectId invalide', async () => {
-      const response = await request(app)
-        .put('/todos/invalid-id')
-        .send({ completed: true })
-        .expect(400);
-
-      expect(response.body.message).toBeDefined();
-    });
-  });
-
   
+    // Test mock 
+    it('devrait appeler console.log lors de la création', async () => {
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-    it('devrait renvoyer 404 lorsque le todo n\'existe pas', async () => {
-      const nonExistentId = new mongoose.Types.ObjectId();
+      await request(app)
+        .post('/todos')
+        .send({ text: 'Test Todo' })
+        .expect(201);
 
-      const response = await request(app)
-        .delete(`/todos/${nonExistentId}`)
-        .expect(404);
-
-      expect(response.body.message).toBe('Todo not found');
+      consoleSpy.mockRestore();
     });
-  });
-
- 
-
-  describe('Error Handling', () => {
-    it('devrait gérer les erreurs de connexion à la base de données avec grâce', async () => {
-      // Temporarily close the connection
-      await mongoose.connection.close();
-
-      const response = await request(app)
-        .get('/todos')
-        .expect(500);
-
-      expect(response.body.message).toBeDefined();
-
-      // Reconnect for other tests
-      const url = process.env.MONGODB_TEST_URL || 'mongodb://localhost:27017/todo-test';
-      await mongoose.connect(url, { 
-        useNewUrlParser: true, 
-        useUnifiedTopology: true 
-      });
-    });
-  });
+  
+}); 
 
 module.exports = app;

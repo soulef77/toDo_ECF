@@ -1,9 +1,9 @@
 const request = require('supertest');
-const { app, startServer, closeServer } = require('../src/app');
+const { app, closeServer } = require('../../src/app');
 
 // Mock des dépendances externes
-jest.mock('../src/config/db', () => jest.fn());
-jest.mock('../src/routes/todoRoutes', () => {
+jest.mock('../../src/config/db', () => jest.fn());
+jest.mock('../../src/routes/todoRoutes', () => {
   const express = require('express');
   const router = express.Router();
   
@@ -76,4 +76,19 @@ describe('Express Server', () => {
     
     expect(serverInstance.listening).toBe(false);
   });
+
+
+  test('devrait mocker Date.now', () => {
+  // Mock ultra simple de Date.now
+  const mockDate = jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+  
+  const timestamp = Date.now();
+  
+  expect(timestamp).toBe(1234567890);
+  expect(mockDate).toHaveBeenCalled();
+  
+  // Nettoyer le mock
+  mockDate.mockRestore();
+});
+
 });
